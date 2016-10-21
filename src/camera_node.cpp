@@ -41,15 +41,12 @@ int main(int argc, char **argv)
 	}
 
 
-	
+	img=cvCreateImage(Size(800,600),src_img->depth,3);
 	while(ros::ok())
 	{
 		src_img=p.Camera2IplImage();
 		//cvShowImage("src_img",src_img);
-		img=cvCreateImage(Size(800,600),src_img->depth,3);
-	
 		cvResize(src_img,img); 
-
 		cv::Mat test_Mat_image(img);
 			// cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
 			// cv_ptr->image = test_Mat_image;

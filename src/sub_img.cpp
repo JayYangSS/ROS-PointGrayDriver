@@ -39,6 +39,6 @@ int main(int argc, char **argv)
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "sub_img");
-    SensorData data;
+    SensorData data("data.txt");
     ros::spin();
 }

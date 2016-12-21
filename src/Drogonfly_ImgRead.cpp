@@ -68,7 +68,7 @@ int Drogonfly_ImgRead::Camera_Intial(void)
 	}
 
 	//copy the data to IplImage
-	cvImg=cvCreateImage(cvSize(rawImage.GetCols(), rawImage.GetRows()), 8, 3);
+    cvImg=cvCreateImage(cvSize(rawImage.GetCols(), rawImage.GetRows()), IPL_DEPTH_8U, 3);
 	cout<<"Dragonfly Initial Done!"<<endl;
 }
 

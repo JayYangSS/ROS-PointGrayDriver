@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "camera");
 
 	CvVideoWriter *writer=NULL;
-	bool saveFlag=true;
+    bool saveFlag=false;
 	Drogonfly_ImgRead p;
 	IplImage *src_img;
 	IplImage *img=NULL;
@@ -41,12 +41,12 @@ int main(int argc, char **argv)
 	}
 
 
-	
+    img=cvCreateImage(Size(800,600),IPL_DEPTH_8U,3);
 	while(ros::ok())
 	{
 		src_img=p.Camera2IplImage();
 		//cvShowImage("src_img",src_img);
-		img=cvCreateImage(Size(800,600),src_img->depth,3);
+		
 	
 		cvResize(src_img,img); 
 
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
    //      		cv_ptr->encoding = "bgr8";
 			// pub_img.publish(cv_ptr->toImageMsg());
 		cv::imshow("test_Mat_image",test_Mat_image);
-		sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8",test_Mat_image).toImageMsg();
+        sensor_msgs::ImagePtr img_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8",test_Mat_image).toImageMsg();
 		pub_img.publish(img_msg);		
 		if(saveFlag)
 			{

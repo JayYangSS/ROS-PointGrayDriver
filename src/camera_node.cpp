@@ -46,10 +46,7 @@ int main(int argc, char **argv)
 	{
 		src_img=p.Camera2IplImage();
 		//cvShowImage("src_img",src_img);
-		
-	
 		cvResize(src_img,img); 
-
 		cv::Mat test_Mat_image(img);
 			// cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
 			// cv_ptr->image = test_Mat_image;

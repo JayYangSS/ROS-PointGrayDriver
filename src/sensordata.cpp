@@ -1,19 +1,24 @@
 #include "sensordata.h"
 
-SensorData::SensorData(const char* fileName)
+SensorData::SensorData(const char* gpsDataFile,const char* imuDataFile)
 {
     image_transport::ImageTransport it(nh);
     sub_img = it.subscribe("/camera/image_color", 2,&SensorData::imgCallback,this);
+
     sub_rtk_gps=nh.subscribe("rtk/fix",1,&SensorData::rtk_gpsCallback,this);
     sub_cexiang_gps=nh.subscribe("n280/fix",1,&SensorData::cexiang_gpsCallback,this);
+    sub_garmin_gps=nh.subscribe("garmin/fix",1,&SensorData::garmin_gpsCallback,this);
+
     sub_imu=nh.subscribe("imu_torso/xsens/data",1,&SensorData::imuCallback,this);
     sub_cexiang_orientation=nh.subscribe("n280/GPS_N280/orientation",1,&SensorData::yawCallback,this);
-    file.open(fileName,ios::in|ios::out);
+    gps_file.open(gpsDataFile,ios::in|ios::out);
+    imu_file.open(imuDataFile,ios::in|ios::out);
 }
 
 SensorData::~SensorData(){
     cout<<"deconstruct"<<endl;
-    file.close();
+    gps_file.close();
+    imu_file.close();
 }
 
 void SensorData::yawCallback(const std_msgs::Float64 output_direction){
@@ -34,8 +39,9 @@ void SensorData::imgCallback(const sensor_msgs::ImageConstPtr& img_in)
     timeStampStr.replace(timeStampStr.find("."),1,"_");
    // std::cout<<timeStampStr<<endl;
     //使用测向GPS产生的偏航角，不再使用IMU产生的地磁偏航
-    file<<timeStampStr<<"  "<<"rtk_gps:"<<setprecision(13)<<rtk_latitude<<"  "<<rtk_longtitude<<",cexiang_gps:"<<cexiang_latitude<<" "<<cexiang_longtitude<<"; yaw:"<<direction_cexiang<<"\n";
-
+    //file<<timeStampStr<<"  "<<"rtk_gps:"<<setprecision(13)<<rtk_latitude<<"  "<<rtk_longtitude<<",cexiang_gps:"<<cexiang_latitude<<" "<<cexiang_longtitude<<"; yaw:"<<direction_cexiang<<"\n";
+    gps_file<<setprecision(13)<<timeStamp<<" "<<rtk_latitude<<" "<<rtk_longtitude<<" "<<rtk_altitude<<" "<<cexiang_latitude<<" "<<cexiang_longtitude<<" "<<cexiang_altitude<<" "<<garmin_latitude<<" "<<garmin_longtitude<<" "<<garmin_altitude<<"\n";
+    imu_file<<setprecision(13)<<timeStamp<<" "<<roll<<" "<<pitch<<" "<<yaw<<" "<<direction_cexiang<<"\n";
     cv::imwrite(timeStampStr+".jpg",img);
     cv:waitKey(5);
 }
@@ -43,12 +49,21 @@ void SensorData::imgCallback(const sensor_msgs::ImageConstPtr& img_in)
   void SensorData::rtk_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &gps_in){
       rtk_latitude = gps_in->latitude;
       rtk_longtitude = gps_in->longitude;
+      rtk_altitude=gps_in->altitude;
   }
 
   void SensorData::cexiang_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &gps_in){
       cexiang_latitude = gps_in->latitude;
       cexiang_longtitude = gps_in->longitude;
+      cexiang_altitude=gps_in->altitude;
   }
+
+  void SensorData::garmin_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &gps_in){
+      garmin_latitude = gps_in->latitude;
+      garmin_longtitude = gps_in->longitude;
+      garmin_altitude=gps_in->altitude;
+  }
+
 
 void SensorData::imuCallback(const sensor_msgs::Imu::ConstPtr& imu_in){
     tf::Quaternion q;

@@ -23,21 +23,22 @@ public:
     Mat img;
     ros::NodeHandle nh;
     image_transport::Subscriber  sub_img;
-    ros::Subscriber sub_gps,sub_imu,sub_yaw;
+    ros::Subscriber sub_rtk_gps,sub_cexiang_gps,sub_imu,sub_cexiang_orientation;
 
     SensorData(const char* fileName);
     ~SensorData();
 
     //callback function to get the sensor data
     void imgCallback(const sensor_msgs::ImageConstPtr& img_in);
-    void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& gps_in);
+    void rtk_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& gps_in);
+    void cexiang_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& gps_in);
     void imuCallback(const sensor_msgs::Imu::ConstPtr& imu_in);
     void yawCallback(const std_msgs::Float64 output_direction);
 
 
 private:
-    double      Current_y, Current_x;
-    double roll, pitch, yaw,direction;
+    double rtk_latitude, rtk_longtitude,cexiang_latitude,cexiang_longtitude;
+    double roll, pitch, yaw,direction_cexiang;
     fstream file;
 
 };

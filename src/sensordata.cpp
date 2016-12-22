@@ -3,10 +3,11 @@
 SensorData::SensorData(const char* fileName)
 {
     image_transport::ImageTransport it(nh);
-    sub_img = it.subscribe("img", 2,&SensorData::imgCallback,this);
-    sub_gps=nh.subscribe("fix",1,&SensorData::gpsCallback,this);
+    sub_img = it.subscribe("/camera/image_color", 2,&SensorData::imgCallback,this);
+    sub_rtk_gps=nh.subscribe("rtk/fix",1,&SensorData::rtk_gpsCallback,this);
+    sub_cexiang_gps=nh.subscribe("n280/fix",1,&SensorData::cexiang_gpsCallback,this);
     sub_imu=nh.subscribe("imu_torso/xsens/data",1,&SensorData::imuCallback,this);
-    sub_yaw=nh.subscribe("GPS_N280/orientation",1,&SensorData::yawCallback,this);
+    sub_cexiang_orientation=nh.subscribe("n280/GPS_N280/orientation",1,&SensorData::yawCallback,this);
     file.open(fileName,ios::in|ios::out);
 }
 
@@ -16,13 +17,13 @@ SensorData::~SensorData(){
 }
 
 void SensorData::yawCallback(const std_msgs::Float64 output_direction){
-    direction=output_direction.data;
+    direction_cexiang=output_direction.data;
 }
 
 void SensorData::imgCallback(const sensor_msgs::ImageConstPtr& img_in)
 {
     static ros::Time baseTime=ros::Time::now();
-    cv_bridge::toCvShare(img_in,"bgr8")->image.copyTo(img);
+    img=cv_bridge::toCvShare(img_in,"bgr8")->image;
  //   std::cout<<curTime.toSec()<<endl;
     cv::imshow("img",img);
     ros::Time curTime=ros::Time::now();
@@ -33,15 +34,20 @@ void SensorData::imgCallback(const sensor_msgs::ImageConstPtr& img_in)
     timeStampStr.replace(timeStampStr.find("."),1,"_");
    // std::cout<<timeStampStr<<endl;
     //使用测向GPS产生的偏航角，不再使用IMU产生的地磁偏航
-    file<<timeStampStr<<"  "<<"gps:"<<setprecision(13)<<Current_x<<"  "<<Current_y<<"; yaw:"<<direction<<"\n";
+    file<<timeStampStr<<"  "<<"rtk_gps:"<<setprecision(13)<<rtk_latitude<<"  "<<rtk_longtitude<<",cexiang_gps:"<<cexiang_latitude<<" "<<cexiang_longtitude<<"; yaw:"<<direction_cexiang<<"\n";
 
     cv::imwrite(timeStampStr+".jpg",img);
     cv:waitKey(5);
 }
 
-  void SensorData::gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &gps_in){
-      Current_x = gps_in->longitude;
-      Current_y = gps_in->latitude;
+  void SensorData::rtk_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &gps_in){
+      rtk_latitude = gps_in->latitude;
+      rtk_longtitude = gps_in->longitude;
+  }
+
+  void SensorData::cexiang_gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &gps_in){
+      cexiang_latitude = gps_in->latitude;
+      cexiang_longtitude = gps_in->longitude;
   }
 
 void SensorData::imuCallback(const sensor_msgs::Imu::ConstPtr& imu_in){
